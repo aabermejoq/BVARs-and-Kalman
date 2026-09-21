@@ -1,0 +1,17 @@
+variable,ultima_fecha_referencia_disponible,n_obs_en_vintage,confianza_rezago
+ANTAD,2020-04-01,328,media
+AUTOS,2020-04-01,328,media
+ActividadIndustrial,2020-02-01,326,media
+EPU,2020-03-01,291,media
+Exportaciones,2020-03-01,327,media
+FBCF,2020-02-01,326,media
+IGAE,2020-02-01,326,media
+IMCP,2020-02-01,326,media
+IMSS_empleos,2020-04-01,274,media
+INPC,2020-04-01,340,alta
+Importaciones,2020-03-01,327,media
+PIB,2020-01-01,109,alta
+TARJETAS,,0,sin_verificar
+TC,2020-05-01,341,alta
+TIIE,2020-05-15,3610,alta
+TasaDesempleo,2020-02-01,182,media

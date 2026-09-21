@@ -219,31 +219,45 @@ def build_audit_table(series):
         "Banco de Mexico (Balanza comercial de mercancias, SA)",
         "Ver PIB=C+I+G+X-M: usar como indicador de actividad (insumos importados a manufactura de exportacion), NO como resta mecanica del PIB.")
 
-    add("IMCP", "Consumo", "Mensual", "Indice (unidad no documentada en archivo)",
-        "SIN METADATOS EN EL ARCHIVO - fuente no verificable internamente",
-        "Probable Indice de Confianza del Consumidor (INEGI/Banxico) por escala y "
-        "contexto de la hoja (Consumo), pero no se puede confirmar la identidad "
-        "exacta de la serie sin metadatos. Requiere confirmacion del usuario antes de usarse.")
+    add("IMCP", "Consumo", "Mensual", "Indice base 2013=100 (probable, SA)",
+        "CONFIRMADO POR EL USUARIO: Indicador Mensual del Consumo Privado en el "
+        "Mercado Interior (IMCPMI), INEGI - forma parte del SCNM",
+        "Es un indicador de ACTIVIDAD real (proxy directo del componente C del "
+        "gasto), no una encuesta de percepcion/confianza. Se publica junto con el "
+        "IGAE (mismo dia de difusion, ~8 semanas de rezago). Correlacion alta con "
+        "PIB (0.80) es esperable porque mide directamente consumo, un componente "
+        "del PIB por el gasto.")
 
-    add("ANTAD", "Consumo", "Mensual", "Indice (unidad no documentada en archivo)",
-        "SIN METADATOS EN EL ARCHIVO - probablemente ANTAD (ventas mismas tiendas)",
-        "Publicacion muy rapida (primeros dias del mes siguiente). Buen candidato de alta frecuencia.")
+    add("ANTAD", "Consumo", "Mensual", "Indice de ventas (probable, no ajustado)",
+        "CONFIRMADO POR EL USUARIO: ventas mismas tiendas, Asociacion Nacional de "
+        "Tiendas de Autoservicio y Departamentales (ANTAD)",
+        "Fuente privada (no gubernamental), publicacion muy rapida (primeros dias "
+        "habiles del mes siguiente: ANTAD publica su propio boletin). Buen "
+        "candidato de alta frecuencia para nowcasting de consumo minorista.")
 
-    add("AUTOS", "Consumo", "Mensual", "Indice (unidad no documentada en archivo)",
-        "SIN METADATOS EN EL ARCHIVO - probablemente ventas/registro de vehiculos (AMIA/INEGI)",
-        "Publicacion muy rapida (primeros dias del mes siguiente). Muy volatil en crisis (colapso de -60% abr-2020 en el nivel).")
+    add("AUTOS", "Consumo", "Mensual", "Indice de ventas (probable, no ajustado)",
+        "CONFIRMADO POR EL USUARIO: venta de vehiculos ligeros (INEGI/AMIA)",
+        "Publicacion muy rapida (primeros dias del mes siguiente). Muy volatil en "
+        "crisis (colapso observado de manufactura/venta en abr-2020, ver notebook "
+        "de auditoria). Bien conocido por ser pro-ciclico y de alta amplitud.")
 
     add("TARJETAS", "Consumo", "Mensual", "Indice (unidad no documentada en archivo)",
-        "SIN METADATOS EN EL ARCHIVO",
+        "SIN CONFIRMAR - el usuario no se pronuncio sobre esta serie especificamente",
         "Cobertura corta (inicia 2009): NO cubre la crisis Tequila (1994-95) y solo "
         "la cola de la crisis 2008-09. Correlacion baja con PIB (~0.28-0.30). "
-        "Candidato debil para EXTENSION/M4 por falta de episodios historicos.")
+        "Candidato debil para EXTENSION/M4 por falta de episodios historicos y "
+        "fuente no verificada.")
 
-    add("EPU", "Uncertainity", "Mensual", "Indice (base no documentada en archivo)",
-        "SIN METADATOS EN EL ARCHIVO - estilo Baker-Bloom-Davis (Mexican EPU)",
-        "Correlacion ~0 con el nivel de crecimiento del PIB: no es un indicador de "
-        "actividad, sino de incertidumbre de politica. Rezago de publicacion tipico "
-        "de este tipo de indices ~2-4 semanas (requiere verificar para 15-may-2020).")
+    add("EPU", "Uncertainity", "Mensual", "Indice (base metodologia Baker-Bloom-Davis)",
+        "CONFIRMADO POR EL USUARIO: Economic Policy Uncertainty Index para Mexico, "
+        "https://www.policyuncertainty.com/mexico_monthly.html",
+        "Correlacion ~0 con el NIVEL de crecimiento del PIB (0.04): no es un "
+        "indicador de actividad sino de incertidumbre de politica economica "
+        "(mineria de texto de prensa). Los indices EPU de policyuncertainty.com "
+        "se actualizan con rezago corto (tipicamente semanas), consistente con "
+        "mineria automatizada de prensa. Uso natural: caracterizar la naturaleza "
+        "del choque (X_t inicial) en M4, o driver de volatilidad en M1 - NO como "
+        "medida de actividad en M2/M3.")
 
     add("IMSS_empleos", "IMSS", "Mensual", "Numero de trabajadores asegurados",
         "SIN METADATOS EN EL ARCHIVO - coincide con IMSS (trabajadores asegurados)",

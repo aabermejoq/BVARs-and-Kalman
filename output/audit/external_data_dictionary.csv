@@ -1,0 +1,5 @@
+variable,fuente,frecuencia,cobertura,disponible_15may2020,rol_propuesto
+google_mobility_{6 subcategorias},Google COVID-19 Community Mobility Reports,Diaria,"MX,KR,IT,ES,US (CN sin cobertura)","Si (publicado desde 3-abr-2020, historia desde 15-feb-2020)","M2/M3 (Mexico, indicador de movilidad de altisima frecuencia) y M4 (analogos cross-country)"
+StringencyIndex_Average,Oxford COVID-19 Government Response Tracker,Diaria,"CN,KR,IT,ES,US,MX",Si (codificado casi en tiempo real desde ene-2020),"M4 (caracterizacion del choque X_t y alineacion temporal de analogos por rigor de politica, no por fecha calendario)"
+INDPRO (EEUU),FRED (Federal Reserve Bank of St. Louis),Mensual,Estados Unidos,"Ref. feb-2020 si (rezago tipico ~5-6 semanas); marzo-2020 en el limite, tratar con cautela",M3/M4 (proxy del canal de demanda externa de EEUU hacia manufactura de exportacion mexicana)
+ICSA (EEUU),FRED (Federal Reserve Bank of St. Louis),Semanal,Estados Unidos,Si (publicado con ~5 dias de rezago; la serie semanal llega hasta la semana del 9-may-2020),"M4 (senal muy rapida y muy dramatica del shock: records historicos de solicitudes en marzo-abril 2020, disponible en tiempo real)"

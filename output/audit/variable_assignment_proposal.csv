@@ -1,0 +1,17 @@
+variable,categoria,M0,M1,M2,M3,M4,razon
+PIB,CORE (target),X,X,X (estado latente),X (target),X (propagacion),Variable dependiente en toda la escalera; en M2/M3 es tambien el estado contemporaneo no observado que se intenta medir.
+INPC,CORE,X,X,X,X,X,Ancla nominal estandar de un VAR macro pequeno abierto (y - pi - i - e); sin revisiones historicas relevantes; disponible sin rezago material.
+TIIE,CORE,X,X,X,X,X,Tasa de politica/mercado; canal de transmision monetaria; Banxico recorto tasas durante el choque 2020 (dato de mercado, disponible el mismo dia).
+TC,CORE,X,X,X,X,X,Variable financiera de una economia abierta pequena; capturo gran parte del choque inicial (depreciacion ~25% en semanas); disponible diario sin rezago.
+TasaDesempleo,EXCLUDED,,,,,,"Ruptura de medicion CONFIRMADA: ENOE suspendida 31-mar-2020, publicacion de abril cancelada, sustituida por ETOE (metodologia distinta) abr-jun 2020. Se vuelve inutilizable en tiempo real exactamente en la ventana de interes."
+IGAE,EXTENSION,,,,X,,Mejor proxy mensual de PIB (corr 0.97) pero rezago de ~8 semanas: al 15-may-2020 solo llega a feb-2020. Demasiado lento para ser el indicador de M2; entra al panel amplio de M3.
+ActividadIndustrial,EXTENSION,,,,X,,Correlacion 0.96 con IGAE (redundante bilateralmente) pero eso es precisamente lo que un modelo de factores esta disenado para explotar: se deja en el panel de M3 en vez de descartarla ad hoc.
+FBCF,EXTENSION,,,,X,,Proxy de inversion; rezago de publicacion aun mayor (~70 dias). Poco util de forma aislada pero aporta informacion de baja frecuencia al factor comun de M3.
+IMCP,EXTENSION,,,,X,,"Indicador Mensual del Consumo Privado (IMCPMI, confirmado por el usuario): proxy directo del componente C del gasto, corr 0.80 con PIB. Mismo rezago que IGAE (~8 semanas): va a M3, no a M2."
+ANTAD,EXTENSION,,,X,X,,Fuente privada de alta frecuencia (rezago ~1 semana); al corte ya llega a abril-2020. Candidata natural del "bridge" de M2 y tambien parte del panel amplio de M3.
+AUTOS,EXTENSION,,,X,X,,Igual que ANTAD: llega a abril-2020 al corte. Muy volatil (colapso agudo en abr-2020): buena senal de intensidad del choque.
+IMSS_empleos,EXTENSION,,,X (indicador principal),X,,"Serie administrativa mas rapida y ""dura"" de la base (llega a abril-2020 al corte). Elegida como indicador UNICO del bridge Kalman de M2 por ser la de menor ruido de medicion conceptual; tambien entra al panel de M3."
+Exportaciones,EXTENSION,,,,X,,"Correlacion moderada (0.41), rezago ~25 dias (llega a marzo-2020). Entra SOLO como indicador de medicion en el factor de M3 (senal de demanda externa), nunca como resta mecanica del PIB (Y=C+I+G+X-M ya es una identidad contable)."
+Importaciones,EXTENSION,,,,X,,"Correlacion alta (0.77) por canal de insumos importados a manufactura de exportacion. Mismo tratamiento y misma advertencia anti-doble-contabilizacion que Exportaciones."
+TARJETAS,EXCLUDED,,,,,,"Fuente no confirmada por el usuario; cobertura corta (desde 2009: no cubre la crisis Tequila 1994-95 y solo la cola de 2008-09); correlacion baja con PIB (0.28)."
+EPU,EXTENSION,,,,,X,"No correlaciona con el NIVEL de actividad (0.04): no es un indicador de estado, es un indice de incertidumbre de politica (mineria de prensa). Su rol natural es caracterizar la naturaleza/intensidad del choque (X_t inicial) para el modelo de trayectorias de M4, no medir el estado contemporaneo en M2/M3."

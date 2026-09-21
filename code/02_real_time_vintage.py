@@ -95,10 +95,15 @@ PUBLICATION_LAG_REGISTRY = {
                       "dias del mes siguiente."),
     "TIIE": dict(freq="D", lag_days=0, confidence="alta",
                  note="Tasa de mercado interbancario, disponible el mismo dia."),
-    "TC": dict(freq="D", lag_days=1, confidence="alta",
-                 note="Tipo de cambio FIX, disponible el mismo dia habil; el "
-                      "promedio de un mes completo requiere esperar al cierre "
-                      "de ese mes (+1 dia)."),
+    "TC": dict(freq="M", lag_days=2, confidence="alta",
+                 note="La hoja trae el PROMEDIO MENSUAL del tipo de cambio FIX "
+                      "(no observaciones diarias): por tanto la fecha de "
+                      "referencia es el mes completo y no puede conocerse antes "
+                      "de que el mes termine. El nivel diario es publico sin "
+                      "rezago, pero el promedio de un mes requiere esperar su "
+                      "cierre; se asume ~2 dias habiles para su calculo y "
+                      "publicacion (alta confianza: es aritmetica trivial sobre "
+                      "datos ya publicos, no una estimacion)."),
     "Exportaciones": dict(freq="M", lag_days=25, confidence="media",
                  note="Balanza comercial 'oportuna' de Banxico/INEGI, publicada "
                       "~25 dias despues del cierre del mes de referencia."),

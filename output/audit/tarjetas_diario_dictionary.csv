@@ -1,0 +1,2 @@
+variable,fuente,frecuencia,disponible_real_time,cobertura,transformacion,uso
+tarjetas_diario (32 categorias + agregado),Banxico (declarado por el usuario),Diaria (agregada a ventana movil 7 dias para des-estacionalizar),"Supuesto: rezago de 1 dia (declarado por el usuario, no verificado independientemente)","2009-01-01 a 2026-07-31, sin huecos",Variacion interanual (a/a) de la suma movil de 7 dias,EXCLUSIVO de M4-agosto (filtro bayesiano de escenarios); no se usa en M2/M3/M0/M1

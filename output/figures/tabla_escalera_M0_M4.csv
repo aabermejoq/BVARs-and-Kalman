@@ -1,0 +1,6 @@
+modelo,info_adicional,problema,variables_nuevas,metodo
+M0,Ninguna (benchmark),Ninguno -- punto de referencia,"PIB, INPC, TIIE, TC (CORE)","BVAR Minnesota (Litterman), Normal-Normal por ecuación"
+M1,Ninguna (misma información que M0),Observaciones extremas / shock ≠ cambio de régimen,Ninguna -- mismos coeficientes que M0,Volatilidad estocástica común (aprox. Harvey-Ruiz-Shephard 1994)
+M2,3 indicadores mensuales rápidos,Estado contemporáneo no observado (PIB/IGAE ciegos hasta feb-2020),"IMSS, ANTAD, AUTOS",Índice compuesto + ecuación puente MCO + Kalman univariado
+M3,Panel amplio de 10 series + canal externo,"Muchos indicadores, no comparables 1:1 con el PIB","+ IGAE, ActividadIndustrial, FBCF, IMCP, Export., Import., INDPRO EEUU",PCA (factor dinámico) vs ElasticNetCV -- gana PCA en backtest
+M4,Trayectorias cross-country de movilidad + stringency,Trayectoria futura del choque desconocida,"Movilidad y StringencyIndex de Corea, Italia, España, EE.UU.",Análogos ponderados por kernel + bootstrap + pronóstico condicional (simplificación univariante de Waggoner-Zha 1999)

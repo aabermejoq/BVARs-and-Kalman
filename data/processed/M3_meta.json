@@ -1,1 +1,12 @@
-{"tilt_coef":0.3,"var_coef":0.3,"gdelt_tilt_coef":0.3,"gdelt_var_coef":0.25,"s0":0.0011994175,"gdelt_validated":false,"gdelt_r2_mean":-0.2128304264,"gdelt_r2_var":-0.1918458861,"gdelt_forced_inclusion":true,"scenario_weights":{"nueva_ola":0.2052198614,"rebote_lento":0.4151933696,"rebote_rapido":6.338651777e-75,"meseta_extendida":0.379586769}}
+{
+  "metodo": "M2 (nowcast+particulas) + Waggoner-Zha (1999) condicionando IMSS_mom jun-dic",
+  "tilt_coef": 0.3,
+  "gdelt_tilt_coef": 0.3,
+  "s0_barra_lenza_primiceri": 4.181214537612109,
+  "scenario_weights": {
+    "nueva_ola": 0.20521986142416576,
+    "rebote_lento": 0.41519336956181546,
+    "rebote_rapido": 6.338651777026052e-75,
+    "meseta_extendida": 0.3795867690140187
+  }
+}

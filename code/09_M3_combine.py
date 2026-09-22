@@ -1,4 +1,10 @@
 """
+SUPERADO por 12_M3_waggoner_zha.py -- este archivo usaba un ajuste aditivo
+ad hoc sobre IGAE. Se reemplazo por pronostico condicional real (Waggoner y
+Zha, 1999) sobre IMSS_mom, tras leer la literatura citada en el paper de
+referencia del usuario. Se deja el archivo por trazabilidad, NO se ejecuta
+como parte del pipeline vigente.
+
 M3 = M2 + escenarios epidemiologicos + GBM tarjetas + GDELT.
 
 Ensamble final:

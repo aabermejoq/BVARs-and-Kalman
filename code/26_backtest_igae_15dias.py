@@ -49,8 +49,8 @@ TRAIN_CUTOFF = pd.Timestamp("2018-12-01")  # seguro antes de todo el rango 2019-
 LAG_WINDOW_LP = 12  # meses hacia atras (ya disponibles en el corte) para anclar LP
 
 NIVEL1_COLS = ["ActividadIndustrial", "FBCF", "IMCP", "Exportaciones", "Importaciones",
-               "IMSS", "ANTAD", "AUTOS", "INDPRO_EEUU", "TIIE", "TC_dep", "TasaDesempleo_chg",
-               "ICSA", "Trends_reapertura", "Trends_despidos", "BMV_yoy", "Spread_tasas"]
+               "IMSS", "ANTAD", "AUTOS", "INDPRO_EEUU", "TIIE_chg", "TC_mom", "TasaDesempleo_chg",
+               "ICSA", "Trends_reapertura", "Trends_despidos", "BMV_mom", "Spread_tasas"]
 ALL_COLS = NIVEL1_COLS + ["IGAE_target"]
 
 EXACT_DATES = {  # ver 24_panel_mensual_igae.py -- solo cubre 2020, resto usa el rezago generico verificado
@@ -92,8 +92,19 @@ def build_monthly_panel(cutoff_date, panel_end):
 
     series = _SERIES_CACHE["series"]
 
-    def yoy(s):
-        return 100 * np.log(s / s.shift(12))
+    # BUG ENCONTRADO (el usuario tenia razon en desconfiar del resultado):
+    # todo el panel usaba variacion INTERANUAL (YoY) mientras IGAE_target es
+    # variacion MENSUAL (m/m) -- un desajuste de frecuencia, no cosmetico.
+    # El propio documento de metodologia de Banxico es explicito: "las
+    # variables en indices y niveles se transformaron a diferencias
+    # porcentuales MENSUALES, y las variables en porcentajes se convirtieron
+    # a diferencias mensuales". Verificado empiricamente: ActividadIndustrial
+    # en m/m tiene CV10 R2=0.65 contra IGAE m/m (vs. 0.06 en YoY); AUTOS
+    # 0.10 vs 0.01; IMSS 0.13 vs -0.003. Se corrige todo el panel a m/m
+    # (log-diferencia para indices/niveles, diferencia simple para tasas ya
+    # expresadas en puntos porcentuales).
+    def mom(s):
+        return 100 * np.log(s / s.shift(1))
 
     idx = pd.date_range("1993-01-01", panel_end, freq="MS")
     panel = pd.DataFrame(index=idx)
@@ -103,38 +114,45 @@ def build_monthly_panel(cutoff_date, panel_end):
         mask = pd.Series([_exact_or_registry(group, d, variable, cutoff_date) for d in idx], index=idx)
         return s.where(mask)
 
-    panel["ActividadIndustrial"] = apply_cutoff(yoy(series["otros"]["ActividadIndustrial"]), "IGAE_ActInd", "ActividadIndustrial")
-    panel["FBCF"] = apply_cutoff(yoy(series["otros"]["FBCF"]), "FBCF_IMCP", "FBCF")
-    panel["IMCP"] = apply_cutoff(yoy(series["Consumo"]["IMCP"]), "FBCF_IMCP", "IMCP")
-    panel["Exportaciones"] = apply_cutoff(yoy(series["Balanza"]["Exportaciones"]), "Balanza", "Exportaciones")
-    panel["Importaciones"] = apply_cutoff(yoy(series["Balanza"]["Importaciones"]), "Balanza", "Importaciones")
-    panel["IMSS"] = apply_cutoff(yoy(series["IMSS"]["IMSS_empleos"]), "IMSS", "IMSS_empleos")
-    panel["ANTAD"] = apply_cutoff(yoy(series["Consumo"]["ANTAD"]), "ANTAD", "ANTAD")
-    panel["AUTOS"] = apply_cutoff(yoy(series["Consumo"]["AUTOS"]), "AUTOS", "AUTOS")
+    panel["ActividadIndustrial"] = apply_cutoff(mom(series["otros"]["ActividadIndustrial"]), "IGAE_ActInd", "ActividadIndustrial")
+    panel["FBCF"] = apply_cutoff(mom(series["otros"]["FBCF"]), "FBCF_IMCP", "FBCF")
+    panel["IMCP"] = apply_cutoff(mom(series["Consumo"]["IMCP"]), "FBCF_IMCP", "IMCP")
+    panel["Exportaciones"] = apply_cutoff(mom(series["Balanza"]["Exportaciones"]), "Balanza", "Exportaciones")
+    panel["Importaciones"] = apply_cutoff(mom(series["Balanza"]["Importaciones"]), "Balanza", "Importaciones")
+    panel["IMSS"] = apply_cutoff(mom(series["IMSS"]["IMSS_empleos"]), "IMSS", "IMSS_empleos")
+    panel["ANTAD"] = apply_cutoff(mom(series["Consumo"]["ANTAD"]), "ANTAD", "ANTAD")
+    panel["AUTOS"] = apply_cutoff(mom(series["Consumo"]["AUTOS"]), "AUTOS", "AUTOS")
 
     indpro = _SERIES_CACHE["indpro"].dropna().resample("MS").mean()
     indpro_ok = pd.Series(idx, index=idx).apply(lambda d: (d + pd.Timedelta(days=45)) <= cutoff_date)
-    panel["INDPRO_EEUU"] = yoy(indpro).reindex(idx).where(indpro_ok)
+    panel["INDPRO_EEUU"] = mom(indpro).reindex(idx).where(indpro_ok)
 
     within = lambda days: pd.Series(idx, index=idx).apply(lambda d: (d + pd.Timedelta(days=days)) <= cutoff_date)
-    panel["TIIE"] = series["TIIE"]["TIIE"].resample("MS").mean().reindex(idx).where(within(2))
+    tiie_m = series["TIIE"]["TIIE"].resample("MS").mean()
+    panel["TIIE_chg"] = tiie_m.diff().reindex(idx).where(within(2))  # tasa en % -> diferencia simple, no log
     tc_m = series["TC"]["TC"].resample("MS").mean()
-    panel["TC_dep"] = yoy(tc_m).reindex(idx).where(within(2))
+    panel["TC_mom"] = mom(tc_m).reindex(idx).where(within(2))
     desem = series["desempleo"]["TasaDesempleo"].diff()
     panel["TasaDesempleo_chg"] = desem.reindex(idx).where(within(24))
 
     icsa_m = _SERIES_CACHE["icsa"].resample("MS").mean()
-    panel["ICSA"] = yoy(icsa_m).reindex(idx).where(within(10))
+    panel["ICSA"] = mom(icsa_m).reindex(idx).where(within(10))
 
+    # Trends: indice acotado 0-100, ya construido para captar la narrativa
+    # COVID -- se deja como diferencia de NIVEL (no log, evita explosiones
+    # cuando el indice toca 0) igual que las variables "en porcentajes".
     trends_m = _SERIES_CACHE["trends"].resample("MS").mean()
-    panel["Trends_reapertura"] = trends_m["reapertura"].reindex(idx).where(within(3))
-    panel["Trends_despidos"] = trends_m["despidos"].reindex(idx).where(within(3))
+    panel["Trends_reapertura"] = trends_m["reapertura"].diff().reindex(idx).where(within(3))
+    panel["Trends_despidos"] = trends_m["despidos"].diff().reindex(idx).where(within(3))
 
     bmv_m = _SERIES_CACHE["bmv"].resample("MS").mean()
-    panel["BMV_yoy"] = yoy(bmv_m).reindex(idx).where(within(2))
+    panel["BMV_mom"] = mom(bmv_m).reindex(idx).where(within(2))
 
+    # Spread de tasas: se deja en NIVEL (no se difference otra vez), igual
+    # que en el documento de Banxico (tabla NowTIM: "N" = niveles para el
+    # spread, es en si mismo ya una diferencia de 2 tasas).
     lt_m = _SERIES_CACHE["lt"].resample("MS").mean().reindex(idx)
-    panel["Spread_tasas"] = lt_m.where(within(30)) - panel["TIIE"]
+    panel["Spread_tasas"] = lt_m.where(within(30)) - tiie_m.reindex(idx).where(within(2))
 
     igae_mom = 100 * np.log(series["otros"]["IGAE"] / series["otros"]["IGAE"].shift(1))
     panel["IGAE_target"] = apply_cutoff(igae_mom, "IGAE_ActInd", "IGAE")
@@ -154,7 +172,7 @@ def fit_clean_params_and_bridge():
           ", ".join(f"{k}={v:+.2f}" for k, v in sorted(lam.items(), key=lambda kv: -abs(kv[1]))[:5]))
 
     factor_clean = pd.Series(fit["x_smooth"][:, 0], index=panel_clean.index)
-    bmv_lag1 = panel_full["BMV_yoy"].shift(1).reindex(panel_clean.index)
+    bmv_lag1 = panel_full["BMV_mom"].shift(1).reindex(panel_clean.index)
     df = pd.concat([panel_clean["IGAE_target"].rename("igae"), factor_clean.rename("f"),
                      bmv_lag1.rename("bmv_l1")], axis=1).dropna()
     y = df["igae"].values
@@ -217,7 +235,7 @@ def run_month(target_month, params):
     res = m2mod.particle_filter(panel, cols_available, lam, R, phi, m2mod.g_asinh, c, Q_series, seed=31)
     final_particles, final_weights = res["final_particles"], res["final_weights"]
 
-    bmv_input = panel["BMV_yoy"].dropna().iloc[-1] if panel["BMV_yoy"].notna().any() else 0.0
+    bmv_input = panel["BMV_mom"].dropna().iloc[-1] if panel["BMV_mom"].notna().any() else 0.0
     rng = np.random.default_rng(1000 + target_month.year * 100 + target_month.month)
     idx_particles = rng.choice(len(final_particles), size=N_DRAWS, p=final_weights)
     growth = np.zeros(N_DRAWS)

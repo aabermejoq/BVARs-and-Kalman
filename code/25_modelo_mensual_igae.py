@@ -41,7 +41,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import ElasticNetCV, LinearRegression
-from sklearn.model_selection import LeaveOneOut
+from sklearn.model_selection import KFold
 
 ROOT = Path(__file__).resolve().parents[1]
 INTERIM = ROOT / "data" / "interim"
@@ -66,37 +66,36 @@ def select_ml_bridge(factor_m, bmv_lag1, igae_target, clean_cutoff):
     y = df_pre["igae"].values
     X_f, X_b, X_fb = df_pre[["f"]].values, df_pre[["bmv_l1"]].values, df_pre[["f", "bmv_l1"]].values
 
-    def loo_r2(X, model_fn):
-        loo = LeaveOneOut()
+    # 10-fold CV en vez de LOO exhaustivo (n=225 x 6 candidatos x 3 cortes con
+    # Random Forest/GBM era demasiado lento) -- sigue siendo una prueba fuera
+    # de muestra honesta, solo con menos particiones.
+    def cv_r2(X, model_fn, n_splits=10, seed=0):
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
         preds = np.zeros(len(y))
-        for tr, te in loo.split(X):
+        for tr, te in kf.split(X):
             preds[te] = model_fn().fit(X[tr], y[tr]).predict(X[te])
-        return 1 - np.sum((y - preds) ** 2) / np.sum((y - y.mean()) ** 2)
+        return 1 - np.sum((y - preds) ** 2) / np.sum((y - y.mean()) ** 2), preds
 
     candidates = {
         ("factor", "OLS"): (X_f, lambda: LinearRegression()),
         ("BMV", "OLS"): (X_b, lambda: LinearRegression()),
         ("factor+BMV", "OLS"): (X_fb, lambda: LinearRegression()),
         ("factor+BMV", "ElasticNet"): (X_fb, lambda: ElasticNetCV(l1_ratio=[.1, .5, .9], cv=5, max_iter=5000)),
-        ("factor+BMV", "RandomForest"): (X_fb, lambda: RandomForestRegressor(n_estimators=300, max_depth=3, random_state=0)),
+        ("factor+BMV", "RandomForest"): (X_fb, lambda: RandomForestRegressor(n_estimators=100, max_depth=3, random_state=0)),
         ("factor+BMV", "GradientBoosting"): (X_fb, lambda: GradientBoostingRegressor(
             n_estimators=100, max_depth=2, learning_rate=0.05, subsample=0.8, random_state=0)),
     }
-    results = {}
+    results, cv_preds = {}, {}
     for key, (X, model_fn) in candidates.items():
-        r2 = loo_r2(X, model_fn)
-        results[key] = r2
-        print(f"    Puente [{key[0]:12s} / {key[1]:16s}]  n={len(df_pre)}  LOO R2={r2:+.3f}")
+        r2, preds = cv_r2(X, model_fn)
+        results[key], cv_preds[key] = r2, preds
+        print(f"    Puente [{key[0]:12s} / {key[1]:16s}]  n={len(df_pre)}  CV10 R2={r2:+.3f}")
 
     best_key = max(results, key=results.get)
     Xb, model_fn = candidates[best_key]
     model = model_fn().fit(Xb, y)
-    preds = np.zeros(len(y))
-    loo = LeaveOneOut()
-    for tr, te in loo.split(Xb):
-        preds[te] = model_fn().fit(Xb[tr], y[tr]).predict(Xb[te])
-    sigma = (y - preds).std(ddof=1)
-    print(f"    -> Mejor puente: {best_key[0]} / {best_key[1]}  (LOO R2={results[best_key]:.3f}, sigma={sigma:.2f}pp)")
+    sigma = (y - cv_preds[best_key]).std(ddof=1)
+    print(f"    -> Mejor puente: {best_key[0]} / {best_key[1]}  (CV10 R2={results[best_key]:.3f}, sigma={sigma:.2f}pp)")
     return dict(model=model, features=best_key[0], sigma=sigma, r2_loo=results[best_key], df=df)
 
 

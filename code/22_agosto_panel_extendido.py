@@ -20,6 +20,16 @@ auditoria de variables faltantes:
     de archivos crudos.
   - Mobility (retail_and_recreation) y OxCGRT (StringencyIndex): mismo
     tratamiento de 21_agosto_mobility_stringency.py.
+  - BMV (Indice de Precios y Cotizaciones, via Yahoo Finance) y Spread de
+    tasas (bono largo plazo FRED - TIIE): variables identificadas al
+    revisar la metodologia REAL de nowcasting de Banxico (documento interno
+    "Revision al pronostico...", su propio modelo NowTIM usa el indice BMV
+    como uno de sus 9 indicadores). Probadas con LOO en 2000/2001-2019:
+    BMV rezagada 1 trimestre es, por mucho, el mejor predictor individual
+    de todo el ejercicio (corr=+0.54, LOO R2=+0.16 vs. <=0.09 de todo lo
+    demas probado) -- consistente con la literatura de mercados bursatiles
+    como indicador adelantado del ciclo. Spread de tasas: mas debil pero
+    consistente (LOO R2~0.05).
 
 TRATAMIENTO EN 2 NIVELES (importante, ver discusion con el usuario):
   Nivel 1 (entran a la estimacion EM conjunta "limpia", hasta dic-2019):
@@ -59,7 +69,7 @@ ASOF = pd.Timestamp("2020-08-15")
 NIVEL1_COLS = ["ActividadIndustrial", "FBCF", "IMCP", "Exportaciones", "Importaciones",
                "IMSS", "ANTAD", "AUTOS", "INDPRO_EEUU",
                "TIIE", "TC_dep", "TasaDesempleo_chg", "ICSA",
-               "Trends_reapertura", "Trends_despidos"]
+               "Trends_reapertura", "Trends_despidos", "BMV_yoy", "Spread_tasas"]
 NIVEL2_COLS = ["mobility_retail", "stringency"]
 
 
@@ -103,15 +113,26 @@ def build_panel_nivel1():
     panel["Trends_reapertura"] = trends_m["reapertura"].reindex(idx)
     panel["Trends_despidos"] = trends_m["despidos"].reindex(idx)
 
+    # --- BMV y spread de tasas (identificadas en metodologia real de Banxico) ---
+    bmv = pd.read_csv(EXTERNAL / "bmv_agosto.csv", index_col=0, parse_dates=True).iloc[:, 0]
+    bmv_m = bmv.resample("MS").mean()
+    panel["BMV_yoy"] = yoy(bmv_m).reindex(idx)
+
+    lt_rate = pd.read_csv(EXTERNAL / "mx_ltrate_fred.csv", parse_dates=["observation_date"])
+    lt_rate = lt_rate.set_index("observation_date")["IRLTLT01MXM156N"].resample("MS").mean().reindex(idx)
+    panel["Spread_tasas"] = lt_rate - panel["TIIE"]
+
     # --- Rezagos de publicacion (real-time cutoff 15-ago-2020) ---
     panel.loc[panel.index > pd.Timestamp("2020-05-01"), ["ActividadIndustrial", "FBCF", "IMCP"]] = np.nan
     panel.loc[panel.index > pd.Timestamp("2020-06-01"), ["Exportaciones", "Importaciones", "INDPRO_EEUU"]] = np.nan
     panel.loc[panel.index > pd.Timestamp("2020-07-01"), ["IMSS", "ANTAD", "AUTOS", "TasaDesempleo_chg"]] = np.nan
-    # TIIE/TC: diarias, practicamente sin rezago -> disponibles hasta el mes del corte (agosto, parcial)
+    # TIIE/TC/BMV: diarias, practicamente sin rezago -> disponibles hasta el mes del corte (agosto, parcial)
     # ICSA: semanal, rezago ~5 dias -> disponible hasta agosto (parcial)
     # Trends: rezago minimo -> disponible hasta agosto (parcial, semana del 9-ago)
-    for col in ["TIIE", "TC_dep", "ICSA", "Trends_reapertura", "Trends_despidos"]:
+    # Spread_tasas: la pata larga (FRED/OCDE) tiene rezago de publicacion ~1 mes -> solo hasta julio
+    for col in ["TIIE", "TC_dep", "ICSA", "Trends_reapertura", "Trends_despidos", "BMV_yoy"]:
         panel.loc[panel.index > pd.Timestamp("2020-08-01"), col] = np.nan
+    panel.loc[panel.index > pd.Timestamp("2020-07-01"), "Spread_tasas"] = np.nan
 
     core_agosto_path = ROOT / "output" / "models_agosto" / "core_info.pkl"
     with open(core_agosto_path, "rb") as f:

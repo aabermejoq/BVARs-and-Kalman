@@ -222,11 +222,17 @@ def run_month(target_month, params):
     idx_particles = rng.choice(len(final_particles), size=N_DRAWS, p=final_weights)
     growth = np.zeros(N_DRAWS)
     model, feats, sigma = params["bridge_model"], params["bridge_features"], params["sigma"]
+    # El puente se ajusto UNA VEZ en tiempos normales (2000-2018): su sigma
+    # de entrenamiento subestima el riesgo real durante un mes donde el
+    # propio filtro YA detecto un choque grande (mismo principio de anclaje
+    # LP usado en 20_M3/23_modelo_unico -- se reutiliza el s0 que el estado
+    # ya calculo para este mes, no un numero nuevo inventado).
+    sigma_eff = sigma * np.sqrt(s0)
     for d in range(N_DRAWS):
         x = final_particles[idx_particles[d]]
         x_in = np.array([[x]]) if feats == "factor" else (np.array([[bmv_input]]) if feats == "BMV" else np.array([[x, bmv_input]]))
         pred = model.predict(x_in)[0]
-        growth[d] = pred + rng.normal(0, sigma)
+        growth[d] = pred + rng.normal(0, sigma_eff)
 
     return dict(target_month=target_month, cutoff=cutoff, mediana=np.median(growth),
                 p025=np.percentile(growth, 2.5), p975=np.percentile(growth, 97.5), s0=s0)

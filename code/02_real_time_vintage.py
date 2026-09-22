@@ -72,20 +72,29 @@ PUBLICATION_LAG_REGISTRY = {
                      "(ej. 1T20 publicado 30-abr-2020). Se revisa dos veces mas "
                      "en los meses siguientes; usamos el valor con revisiones "
                      "posteriores por la limitacion de vintage declarada."),
-    "IGAE": dict(freq="M", lag_days=58, confidence="media",
-                 note="Indicador Global de la Actividad Economica: rezago tipico "
-                      "de ~8 semanas (se publica ~3a semana del 2o mes siguiente)."),
-    "ActividadIndustrial": dict(freq="M", lag_days=58, confidence="media",
-                 note="Se publica junto con IGAE en el mismo comunicado del "
-                      "Sistema de Cuentas Nacionales; se trata con el mismo "
-                      "rezago conservador que IGAE."),
-    "FBCF": dict(freq="M", lag_days=70, confidence="media",
-                 note="Formacion Bruta de Capital Fijo tiene rezago de publicacion "
-                      "mayor al de IGAE (tipicamente 10-11 semanas)."),
-    "IMCP": dict(freq="M", lag_days=58, confidence="media",
-                 note="Indicador Mensual del Consumo Privado en el Mercado "
-                      "Interior (IMCPMI): forma parte del mismo paquete de "
-                      "difusion que IGAE, mismo rezago."),
+    "IGAE": dict(freq="M", lag_days=56, confidence="alta",
+                 note="VERIFICADO con comunicados reales de INEGI (2020): abr->"
+                      "26-jun (57d), may->24-jul (54d), jun->26-ago (57d), jul->"
+                      "25-sep (56d), ago->26-oct (56d). Rezago consistente ~54-57d, "
+                      "se usa 56 como valor central."),
+    "ActividadIndustrial": dict(freq="M", lag_days=56, confidence="alta",
+                 note="VERIFICADO: se publica en el MISMO comunicado que IGAE "
+                      "(mismas fechas exactas de arriba) -- confirmado revisando "
+                      "el texto de los boletines igae2020_*.pdf, que NO mencionan "
+                      "FBCF ni IMCP (esos van en un comunicado aparte, ver abajo)."),
+    "FBCF": dict(freq="M", lag_days=67, confidence="alta",
+                 note="CORREGIDO (bug encontrado por el usuario): FBCF/IMCP NO "
+                      "se publican junto con IGAE, van en un comunicado propio "
+                      "'Indicador Mensual de la Formacion Bruta de Capital Fijo' "
+                      "(IMFBCF), ~13 dias DESPUES de IGAE. VERIFICADO 2020: mar->"
+                      "5-jun (66d), abr->6-jul (67d), may->6-ago (67d), jun->"
+                      "7-sep (68d), jul->6-oct (67d)."),
+    "IMCP": dict(freq="M", lag_days=67, confidence="alta",
+                 note="CORREGIDO (bug encontrado por el usuario): iba erroneamente "
+                      "agrupado con el rezago de IGAE. VERIFICADO: se publica el "
+                      "MISMO dia que FBCF (comunicado imcpmi, fechas identicas: "
+                      "5-jun, 6-jul, 6-ago, 7-sep, 6-oct para mar-jul 2020), NO "
+                      "con IGAE. Ver FBCF."),
     "TasaDesempleo": dict(freq="M", lag_days=24, confidence="media",
                  note="ENOE mensual en condiciones normales tiene rezago de ~3-4 "
                       "semanas. Ver KNOWN_DISRUPTIONS: este rezago NO aplica "
@@ -104,22 +113,23 @@ PUBLICATION_LAG_REGISTRY = {
                       "cierre; se asume ~2 dias habiles para su calculo y "
                       "publicacion (alta confianza: es aritmetica trivial sobre "
                       "datos ya publicos, no una estimacion)."),
-    "Exportaciones": dict(freq="M", lag_days=25, confidence="media",
-                 note="Balanza comercial 'oportuna' de Banxico/INEGI, publicada "
-                      "~25 dias despues del cierre del mes de referencia."),
-    "Importaciones": dict(freq="M", lag_days=25, confidence="media",
-                 note="Ver Exportaciones. Mismo comunicado, mismo rezago."),
-    "ANTAD": dict(freq="M", lag_days=7, confidence="media",
-                 note="Boletin propio de ANTAD (fuente privada), publicado en "
-                      "los primeros dias habiles del mes siguiente. Calendario "
-                      "exacto no verificado con fuente primaria en esta sesion."),
-    "AUTOS": dict(freq="M", lag_days=10, confidence="media",
-                 note="Venta/registro de vehiculos ligeros (INEGI/AMIA), "
-                      "publicado en la primera quincena del mes siguiente."),
-    "IMSS_empleos": dict(freq="M", lag_days=8, confidence="media",
-                 note="IMSS publica su propio boletin de trabajadores asegurados "
-                      "en la primera semana del mes siguiente: es de los "
-                      "indicadores mas rapidos de la base."),
+    "Exportaciones": dict(freq="M", lag_days=26, confidence="alta",
+                 note="VERIFICADO: 'Informacion Oportuna sobre la Balanza "
+                      "Comercial' (INEGI), may-2020 publicada 26-jun-2020 (26d)."),
+    "Importaciones": dict(freq="M", lag_days=26, confidence="alta",
+                 note="Ver Exportaciones. Mismo comunicado, mismo rezago (26d)."),
+    "ANTAD": dict(freq="M", lag_days=11, confidence="alta",
+                 note="VERIFICADO: boletin propio de ANTAD, ventas de mayo-2020 "
+                      "publicadas 11-jun-2020 (11d)."),
+    "AUTOS": dict(freq="M", lag_days=5, confidence="alta",
+                 note="VERIFICADO: Registro Administrativo de la Industria "
+                      "Automotriz de Vehiculos Ligeros (RAIAVL, INEGI/AMIA), "
+                      "ventas de mayo-2020 publicadas 5-jun-2020 (5d) -- el "
+                      "indicador mas rapido del panel duro."),
+    "IMSS_empleos": dict(freq="M", lag_days=12, confidence="alta",
+                 note="VERIFICADO: IMSS publico los datos de puestos de trabajo "
+                      "de mayo-2020 el ~12-jun-2020 (12d, reportado por Forbes "
+                      "Mexico 13-jun-2020 citando el comunicado del dia anterior)."),
     "TARJETAS": dict(freq="M", lag_days=None, confidence="sin_verificar",
                  note="Fuente y calendario de publicacion no confirmados por el "
                       "usuario ni verificables dentro del archivo. EXCLUIDA de "

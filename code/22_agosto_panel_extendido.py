@@ -134,11 +134,16 @@ def build_panel_nivel1():
         panel.loc[panel.index > pd.Timestamp("2020-08-01"), col] = np.nan
     panel.loc[panel.index > pd.Timestamp("2020-07-01"), "Spread_tasas"] = np.nan
 
-    core_agosto_path = ROOT / "output" / "models_agosto" / "core_info.pkl"
-    with open(core_agosto_path, "rb") as f:
-        info_agosto = pickle.load(f)
-    core = info_agosto["core"]
-    pib_qoq = 100 * core["log_PIB"].diff(1)
+    # NOTA (bug encontrado): antes se tomaba pib_qoq de output/models_agosto/
+    # core_info.pkl, un panel "core" de Fase 1-4 truncado a 2006-2020 (58
+    # trimestres) -- probablemente por el variable CORE con la historia mas
+    # corta en ese momento. Eso limitaba TODAS las pruebas LOO de puentes
+    # (incluidas M1/M2/M3 de agosto) a una muestra mucho mas chica de la
+    # que en realidad esta disponible para el PIB. Se usa aqui la serie
+    # COMPLETA de PIB (1993+, la misma que usan las pruebas ad-hoc de
+    # tarjetas/EPU/TIIE/BMV) para no perder historia real.
+    pib_full = series["PIB"]["PIB"]
+    pib_qoq = 100 * np.log(pib_full / pib_full.shift(1))
     pib_series = pd.Series(index=panel.index, dtype=float)
     for dte, val in pib_qoq.items():
         close_month = dte + pd.DateOffset(months=2)
